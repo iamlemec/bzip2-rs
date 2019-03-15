@@ -208,14 +208,6 @@ impl Decompress {
         }
     }
 
-    /// Restart stream
-    pub fn restart(&mut self, small: bool) -> Result<Status, Error> {
-        unsafe {
-            assert_eq!(ffi::BZ2_bzDecompressInit(&mut *self.inner.raw, 0, small as c_int), 0);
-        }
-        return Ok(Status::Ok)
-    }
-
     /// Decompress a block of input into a block of output.
     pub fn decompress(&mut self, input: &[u8], output: &mut [u8])
                       -> Result<Status, Error> {

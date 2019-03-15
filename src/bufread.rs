@@ -194,7 +194,7 @@ impl<R: BufRead> Read for BzDecoder<R> {
                     return Ok(0)
                 }
                 if self.done {
-                    self.data.restart(false).unwrap();
+                    self.data = Decompress::new(false);
                     self.done = false;
                 }
                 let before_out = self.data.total_out();
