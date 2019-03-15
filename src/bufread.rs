@@ -186,14 +186,17 @@ impl<R> BzDecoder<R> {
 
 impl<R: BufRead> Read for BzDecoder<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        if self.done {
-            return Ok(0)
-        }
         loop {
-            let (read, consumed, eof, ret);
+            let (read, consumed, ret);
             {
                 let input = try!(self.obj.fill_buf());
-                eof = input.is_empty();
+                if input.is_empty() {
+                    return Ok(0)
+                }
+                if self.done {
+                    self.data.restart(false).unwrap();
+                    self.done = false;
+                }
                 let before_out = self.data.total_out();
                 let before_in = self.data.total_in();
                 ret = self.data.decompress(input, buf);
@@ -207,9 +210,8 @@ impl<R: BufRead> Read for BzDecoder<R> {
             }));
             if ret == Status::StreamEnd {
                 self.done = true;
-                return Ok(read)
             }
-            if read > 0 || eof || buf.len() == 0 {
+            if read > 0 || buf.len() == 0 {
                 return Ok(read)
             }
         }
